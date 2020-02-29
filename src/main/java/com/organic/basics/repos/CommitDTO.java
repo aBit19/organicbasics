@@ -3,26 +3,29 @@ package com.organic.basics.repos;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import java.util.Objects;
+import java.util.Map;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 class CommitDTO {
-  @JsonProperty(value = "author.name")
+
   private String name;
   private String message;
-  @JsonProperty(value = "author.date")
   private String date;
 
-  CommitDTO(String name, String message, String date) {
-    this.name = Objects.requireNonNull(name);
-    this.message = Objects.requireNonNull(message);
-    this.date = Objects.requireNonNull(date);
+  CommitDTO() {}
+
+  @JsonProperty("commit")
+  private void unpackNested(Map<String, Object> commit) {
+    this.message = commit.getOrDefault("message", "").toString();
+    @SuppressWarnings("Author is a nested object in the reponse")
+    Map<String, Object> author = (Map<String, Object>)commit.get("author");
+    this.name = author.getOrDefault("name", "").toString();
+    this.date = author.getOrDefault("date", "").toString();
   }
 
   public String getName() {
     return name;
   }
-
   public String getMessage() {
     return message;
   }
