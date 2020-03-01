@@ -11,7 +11,8 @@ class RepoDTO {
   @JsonProperty(value = "html_url")
   private String url;
 
-  RepoDTO() {}
+  RepoDTO() {
+  }
 
   public String getName() {
     return name;

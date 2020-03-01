@@ -1,59 +1,62 @@
 package com.organic.basics.repos;
 
-import com.organic.basics.webservice.WebService;
+import com.organic.basics.webservice.ResponseException;
 import com.organic.basics.webservice.WebServiceFactory;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 
 import static java.util.Collections.singletonMap;
 import static java.util.stream.Collectors.toSet;
 
 class RepoService {
+
   private static final String GITHUB_API = "https://api.github.com";
   private static final String ORGS_REPO_ENDPOINT = GITHUB_API + "/orgs/Shopify/repos";
   private static final String REPO_LANGUAGE = GITHUB_API + "/repos/Shopify/%s/languages";
-  private static final String REPO_COMMITS = (GITHUB_API + "/repos/Shopify/%s/commits");
+  private static final String REPO_COMMITS = GITHUB_API + "/repos/Shopify/%s/commits";
 
-  List<CommitDTO> getCommitsOfSince(String repositoryName, String since) {
+  Optional<List<CommitDTO>> getCommitsOfSince(String repositoryName, String since) {
     Objects.requireNonNull(repositoryName);
     Objects.requireNonNull(since);
     Map<String, String> parameters = singletonMap("since", since);
 
-    WebService<CommitDTO[]> webService = getWebService(CommitDTO[].class);
-    CommitDTO[] commits = webService
-            .getResponse(String.format(REPO_COMMITS, repositoryName), parameters);
-    return Arrays.asList(commits);
+    Optional<CommitDTO[]> optionalCommitDTOS = get(String.format(REPO_COMMITS, repositoryName), CommitDTO[].class, parameters);
+    return optionalCommitDTOS.map(Arrays::asList);
   }
 
-  Set<String> getLanguagesOf(String repositoryName) {
+  Optional<Set<String>> getLanguagesOf(String repositoryName) {
     Objects.requireNonNull(repositoryName);
-    WebService<Map> webService = getWebService(Map.class);
     String languagesURL = String.format(REPO_LANGUAGE, repositoryName);
+    Optional<Map> languagesResponse = get(languagesURL, Map.class, Collections.emptyMap());
 
-    @SuppressWarnings("It will succed since we call toString() method in the key set")
-    Set<String> languages = (Set<String>) webService
-            .getResponse(languagesURL)
-            .keySet()
-            .stream()
-            .map(Object::toString)
-            .collect(toSet());
-    return languages;
+    if (languagesResponse.isPresent()) {
+      @SuppressWarnings("The language is the key to the returned map")
+      Set<String> languages = (Set<String>) languagesResponse.get()
+              .keySet().stream().map(Object::toString).collect(toSet());
+      return Optional.of(languages);
+    } else {
+      return Optional.empty();
+    }
   }
 
-  List<RepoDTO> getRecentRepos(int limit) {
+  Optional<List<RepoDTO>> getRecentRepos(int limit) {
     Map<String, String> parameters = singletonMap("direction", "desc");
-    WebService<RepoDTO[]> webService = getWebService(RepoDTO[].class);
-    RepoDTO[] response = webService.getResponse(ORGS_REPO_ENDPOINT, parameters);
-    return response.length <= limit
-            ? Arrays.asList(response)
-            : Arrays.asList(Arrays.copyOf(response, limit));
+    Optional<RepoDTO[]> repoDTOS = get(ORGS_REPO_ENDPOINT, RepoDTO[].class, parameters);
+    return repoDTOS.map(res -> res.length <= limit ? Arrays.asList(res) : Arrays.asList(Arrays.copyOf(res, limit)));
   }
 
-  <T> WebService<T> getWebService(Class<T> classType) {
-    return WebServiceFactory.getInstance(classType);
+  <T> Optional<T> get(String URL, Class<T> classType, Map<String, String> parameters) {
+    try {
+      return Optional.of(WebServiceFactory.getInstance(classType).getResponse(URL, parameters));
+    } catch (ResponseException e) {
+      return Optional.empty();
+    }
   }
+
 }

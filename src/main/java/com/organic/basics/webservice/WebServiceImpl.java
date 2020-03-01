@@ -1,5 +1,7 @@
 package com.organic.basics.webservice;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestOperations;
 import org.springframework.web.util.UriBuilder;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -18,14 +20,22 @@ class WebServiceImpl<T> implements WebService<T> {
   }
 
   @Override
-  public T getResponse(String url, Map<String, String> parameters) {
+  public T getResponse(String url, Map<String, String> parameters) throws ResponseException {
     UriBuilder uriBuilder = UriComponentsBuilder.fromHttpUrl(url);
-    for (Map.Entry<String, String> param2Value: parameters.entrySet()) {
+    for (Map.Entry<String, String> param2Value : parameters.entrySet()) {
       uriBuilder.queryParam(param2Value.getKey(), param2Value.getValue());
     }
     URI uri = uriBuilder.build();
 
-    return restOperations.getForObject(uri, type);
+    try {
+      ResponseEntity<T> forEntity = restOperations.getForEntity(uri, type);
+      if (forEntity.getStatusCode().isError()) {
+        throw new ResponseException(forEntity.getStatusCodeValue(), forEntity.getStatusCode().getReasonPhrase());
+      }
+      return forEntity.getBody();
+    } catch (Exception e) {
+      throw new ResponseException(HttpStatus.INTERNAL_SERVER_ERROR.value(), e.getMessage());
+    }
   }
 
 }

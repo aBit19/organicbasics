@@ -7,6 +7,7 @@ import org.junit.Test;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import static java.util.Collections.singleton;
@@ -34,9 +35,9 @@ public class RepoControllerTest {
   @Test
   public void languages_given_specific_repo_then_call_repo_service() {
     String repository = "repository";
-    when(repoService.getLanguagesOf(repository)).thenReturn(Collections.singleton("Java"));
+    when(repoService.getLanguagesOf(repository)).thenReturn(Optional.of(Collections.singleton("Java")));
 
-    Map<String, Set<String>> languages = repoController.languages(repository);
+    Map<String, Set<String>> languages = repoController.languages(repository).getBody();
 
     assertTrue(languages.containsKey(repository));
     Assert.assertEquals(1, languages.get(repository).size());
@@ -49,11 +50,11 @@ public class RepoControllerTest {
     String languageOfRepo = "ruby";
     RepoDTO repoDTO = mock(RepoDTO.class);
     when(repoDTO.getName()).thenReturn(repository);
-    when(repoService.getRecentRepos(50)).thenReturn(singletonList(repoDTO));
-    when(repoService.getLanguagesOf(repository)).thenReturn(singleton(languageOfRepo));
+    when(repoService.getRecentRepos(50)).thenReturn(Optional.of(singletonList(repoDTO)));
+    when(repoService.getLanguagesOf(repository)).thenReturn(Optional.of(singleton(languageOfRepo)));
 
 
-    Map<String, Set<String>> languages = repoController.languages(null);
+    Map<String, Set<String>> languages = repoController.languages(null).getBody();
 
 
     assertTrue(languages.containsKey(repository));
@@ -71,9 +72,9 @@ public class RepoControllerTest {
     when(commitDTO.getName()).thenReturn("name");
 
     when(repoService.getCommitsOfSince(repoName, since))
-            .thenReturn(singletonList(commitDTO));
+            .thenReturn(Optional.of(singletonList(commitDTO)));
 
-    Map<String, List<CommitDTO>> commits = repoController.commits(repoName, since);
+    Map<String, List<CommitDTO>> commits = repoController.commits(repoName, since).getBody();
 
     assertTrue(commits.containsKey(repoName));
     assertEquals(1, commits.get(repoName).size());
@@ -85,17 +86,14 @@ public class RepoControllerTest {
     String since = "1970-2-2";
     String repoName = "reponame";
 
-    doReturn(singletonList(repoName))
+    doReturn(Optional.of(singletonList(repoName)))
             .when(repoController).getRepoNames();
 
 
     Map<String, List<CommitDTO>> commits =
-            repoController.commits(null, since);
+            repoController.commits(null, since).getBody();
 
     verify(repoService, times(1))
             .getCommitsOfSince(repoName, since);
-
-
-
   }
 }
