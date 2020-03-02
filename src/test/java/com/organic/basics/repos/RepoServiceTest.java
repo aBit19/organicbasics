@@ -7,7 +7,6 @@ import org.junit.Test;
 
 import java.util.Collections;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 
 import static java.util.Collections.singletonMap;
@@ -26,23 +25,22 @@ public class RepoServiceTest {
   }
 
   @Test(expected = NullPointerException.class)
-  public void getLanguagesOf_given_null_repository_then_NPE() {
+  public void getLanguagesOf_given_null_repository_then_NPE() throws ResponseException {
     repoService.getLanguagesOf(null);
   }
 
   @Test
   @SuppressWarnings("mocks webservice")
-  public void getLanguagesOf_given_non_null_repo_then_call_correct_api() {
+  public void getLanguagesOf_given_non_null_repo_then_call_correct_api() throws ResponseException {
     String url = "https://api.github.com/repos/Shopify/repository/languages";
     String repository = "repository";
 
-    doReturn(Optional.of(Collections.singletonMap("java", 1)))
+    doReturn(Collections.singletonMap("java", 1))
             .when(repoService).get(url, Map.class, Collections.emptyMap());
 
-    Optional<Set<String>> languagesOf = repoService.getLanguagesOf(repository);
+    Set<String> languagesOf = repoService.getLanguagesOf(repository);
 
-    Assert.assertTrue(languagesOf.isPresent());
-    Assert.assertTrue(languagesOf.get().contains("java"));
+    Assert.assertTrue(languagesOf.contains("java"));
   }
 
 
@@ -59,7 +57,7 @@ public class RepoServiceTest {
     String url = "https://api.github.com/repos/Shopify/repository/commits";
     Map<String, String> expectedParam = singletonMap("since", since);
 
-    doReturn(Optional.of(new CommitDTO[]{})).when(repoService).get(url, CommitDTO[].class, expectedParam);
+    doReturn(new CommitDTO[]{}).when(repoService).get(url, CommitDTO[].class, expectedParam);
 
     repoService.getCommitsOfSince(repoName, since);
 

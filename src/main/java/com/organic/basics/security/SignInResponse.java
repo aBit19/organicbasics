@@ -5,9 +5,9 @@ class SignInResponse {
   private String token;
   private String type;
 
-  SignInResponse(AuthorizationTokenProvider authorizationTokenProvider) {
-    this.token = authorizationTokenProvider.generateToken();
-    this.type = authorizationTokenProvider.getType();
+  SignInResponse(String token, String type) {
+    this.token = token;
+    this.type = type;
   }
 
   public String getToken() {

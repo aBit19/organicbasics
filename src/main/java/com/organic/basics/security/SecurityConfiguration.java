@@ -8,7 +8,7 @@ import org.springframework.security.config.annotation.authentication.builders.Au
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.config.http.SessionCreationPolicy;
 
 @Configuration
 @EnableWebSecurity
@@ -28,15 +28,13 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 
   @Override
   public void configure(HttpSecurity httpSecurity) throws Exception {
-    httpSecurity.cors().and().csrf().disable();
-
-    httpSecurity.authorizeRequests()
+    httpSecurity.cors().and().csrf().disable()
+            .authorizeRequests()
             .antMatchers(HttpMethod.POST, "/auth/**")
             .permitAll()
-            .anyRequest().authenticated();
-
-    httpSecurity.addFilterBefore(new AuthorizationFilter(), UsernamePasswordAuthenticationFilter.class);
+            .anyRequest().authenticated()
+            .and()
+            .addFilter(new AuthorizationFilter(authenticationManager(), new AccessControlService()))
+            .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
   }
-
-
 }

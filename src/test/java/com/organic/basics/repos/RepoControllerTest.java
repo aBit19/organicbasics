@@ -1,5 +1,6 @@
 package com.organic.basics.repos;
 
+import com.organic.basics.webservice.ResponseException;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -7,7 +8,6 @@ import org.junit.Test;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 
 import static java.util.Collections.singleton;
@@ -33,9 +33,9 @@ public class RepoControllerTest {
   }
 
   @Test
-  public void languages_given_specific_repo_then_call_repo_service() {
+  public void languages_given_specific_repo_then_call_repo_service() throws ResponseException {
     String repository = "repository";
-    when(repoService.getLanguagesOf(repository)).thenReturn(Optional.of(Collections.singleton("Java")));
+    when(repoService.getLanguagesOf(repository)).thenReturn(Collections.singleton("Java"));
 
     Map<String, Set<String>> languages = repoController.languages(repository).getBody();
 
@@ -45,13 +45,13 @@ public class RepoControllerTest {
   }
 
   @Test
-  public void language_given_no_repository_then_get_languages_of_all_repos() {
+  public void language_given_no_repository_then_get_languages_of_all_repos() throws ResponseException {
     String repository = "shipping";
     String languageOfRepo = "ruby";
     RepoDTO repoDTO = mock(RepoDTO.class);
     when(repoDTO.getName()).thenReturn(repository);
-    when(repoService.getRecentRepos(50)).thenReturn(Optional.of(singletonList(repoDTO)));
-    when(repoService.getLanguagesOf(repository)).thenReturn(Optional.of(singleton(languageOfRepo)));
+    when(repoService.getRecentRepos(50)).thenReturn(singletonList(repoDTO));
+    when(repoService.getLanguagesOf(repository)).thenReturn(singleton(languageOfRepo));
 
 
     Map<String, Set<String>> languages = repoController.languages(null).getBody();
@@ -63,7 +63,7 @@ public class RepoControllerTest {
   }
 
   @Test
-  public void commits_given_repository_then_delegate_to_repo_service() {
+  public void commits_given_repository_then_delegate_to_repo_service() throws ResponseException {
     String repoName = "gomail";
     String since = "1970-2-2";
     CommitDTO commitDTO = mock(CommitDTO.class);
@@ -72,7 +72,7 @@ public class RepoControllerTest {
     when(commitDTO.getName()).thenReturn("name");
 
     when(repoService.getCommitsOfSince(repoName, since))
-            .thenReturn(Optional.of(singletonList(commitDTO)));
+            .thenReturn(singletonList(commitDTO));
 
     Map<String, List<CommitDTO>> commits = repoController.commits(repoName, since).getBody();
 
@@ -82,11 +82,11 @@ public class RepoControllerTest {
   }
 
   @Test
-  public void commits_given_no_repository_then_get_commits_for_all_repos() {
+  public void commits_given_no_repository_then_get_commits_for_all_repos() throws ResponseException {
     String since = "1970-2-2";
     String repoName = "reponame";
 
-    doReturn(Optional.of(singletonList(repoName)))
+    doReturn(singletonList(repoName))
             .when(repoController).getRepoNames();
 
 

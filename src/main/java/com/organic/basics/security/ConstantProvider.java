@@ -7,6 +7,8 @@ class ConstantProvider {
   private ConstantProvider() {
   }
 
+  static final String AUTHORIZATION_HEADER = "Authorization";
+
   static PasswordEncoder getPasswordEncoder() {
     return new BCryptPasswordEncoder();
   }

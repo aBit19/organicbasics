@@ -14,7 +14,7 @@ public class AccessControlServiceTest {
   private AccessControlService accessControlService;
 
   @Before
-  public void setUp() throws Exception {
+  public void setUp() {
     accessControlService = new AccessControlService();
   }
 
@@ -43,8 +43,12 @@ public class AccessControlServiceTest {
 
   @Test(expected = UsernameNotFoundException.class)
   public void loadUserByUsername_given_user_name_do_not_exist_then_UNFE() {
-
     accessControlService.loadUserByUsername("test");
+  }
+
+  @Test(expected = UsernameNotFoundException.class)
+  public void loadUserByUserName_given_null_username_then_UNFE() {
+    accessControlService.loadUserByUsername(null);
   }
 
   @Test

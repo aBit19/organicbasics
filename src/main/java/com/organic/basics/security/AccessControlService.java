@@ -37,7 +37,7 @@ class AccessControlService implements UserDetailsService {
 
   SignInResponse authenticate(SignDTO signDTO) {
     UserDetails userDetails = authenticateUser(signDTO);
-    return new SignInResponse(new AuthorizationTokenProvider(userDetails.getUsername()));
+    return new SignInResponse(new AuthTokenProvider(userDetails.getUsername()).generateToken(), AuthTokenProvider.TYPE);
   }
 
   private UserDetails authenticateUser(SignDTO signDTO) {
@@ -51,9 +51,8 @@ class AccessControlService implements UserDetailsService {
 
   @Override
   public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-    UserDetails userDetails = userDetailsByUsername.get(username);
-    if (userDetails != null) {
-      return userDetails;
+    if (username != null && userDetailsByUsername.containsKey(username)) {
+      return userDetailsByUsername.get(username);
     }
     throw new UsernameNotFoundException(String.format("Username %s not found", username));
   }

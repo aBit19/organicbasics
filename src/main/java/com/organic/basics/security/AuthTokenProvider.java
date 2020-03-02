@@ -7,22 +7,18 @@ import org.slf4j.LoggerFactory;
 import java.util.Date;
 import java.util.Objects;
 
-class AuthorizationTokenProvider {
+class AuthTokenProvider {
 
   private final String username;
 
+  static final String TYPE = "Bearer";
   private static final int TOKEN_VALIDITY = 24 * 60 * 60 * 1000;
   private static final String SECRET = "jwtGrokonezSecretKey";
-  static final String TYPE = "Bearer";
 
-  private static final Logger logger = LoggerFactory.getLogger(AuthorizationTokenProvider.class);
+  private static final Logger logger = LoggerFactory.getLogger(AuthTokenProvider.class);
 
-  AuthorizationTokenProvider(String username) {
+  AuthTokenProvider(String username) {
     this.username = Objects.requireNonNull(username);
-  }
-
-  String getType() {
-    return TYPE;
   }
 
   String generateToken() {

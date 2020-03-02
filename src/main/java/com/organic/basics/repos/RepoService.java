@@ -8,7 +8,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
 
 import static java.util.Collections.singletonMap;
@@ -21,42 +20,31 @@ class RepoService {
   private static final String REPO_LANGUAGE = GITHUB_API + "/repos/Shopify/%s/languages";
   private static final String REPO_COMMITS = GITHUB_API + "/repos/Shopify/%s/commits";
 
-  Optional<List<CommitDTO>> getCommitsOfSince(String repositoryName, String since) {
+  List<CommitDTO> getCommitsOfSince(String repositoryName, String since) throws ResponseException {
     Objects.requireNonNull(repositoryName);
     Objects.requireNonNull(since);
     Map<String, String> parameters = singletonMap("since", since);
 
-    Optional<CommitDTO[]> optionalCommitDTOS = get(String.format(REPO_COMMITS, repositoryName), CommitDTO[].class, parameters);
-    return optionalCommitDTOS.map(Arrays::asList);
+    CommitDTO[] commitDTOS = get(String.format(REPO_COMMITS, repositoryName), CommitDTO[].class, parameters);
+    return Arrays.asList(commitDTOS);
   }
 
-  Optional<Set<String>> getLanguagesOf(String repositoryName) {
+  Set<String> getLanguagesOf(String repositoryName) throws ResponseException {
     Objects.requireNonNull(repositoryName);
     String languagesURL = String.format(REPO_LANGUAGE, repositoryName);
-    Optional<Map> languagesResponse = get(languagesURL, Map.class, Collections.emptyMap());
-
-    if (languagesResponse.isPresent()) {
-      @SuppressWarnings("The language is the key to the returned map")
-      Set<String> languages = (Set<String>) languagesResponse.get()
-              .keySet().stream().map(Object::toString).collect(toSet());
-      return Optional.of(languages);
-    } else {
-      return Optional.empty();
-    }
+    Map<?, ?> languagesResponse = get(languagesURL, Map.class, Collections.emptyMap());
+    return languagesResponse.keySet().stream().map(Object::toString).collect(toSet());
   }
 
-  Optional<List<RepoDTO>> getRecentRepos(int limit) {
+  List<RepoDTO> getRecentRepos(int limit) throws ResponseException {
     Map<String, String> parameters = singletonMap("direction", "desc");
-    Optional<RepoDTO[]> repoDTOS = get(ORGS_REPO_ENDPOINT, RepoDTO[].class, parameters);
-    return repoDTOS.map(res -> res.length <= limit ? Arrays.asList(res) : Arrays.asList(Arrays.copyOf(res, limit)));
+    RepoDTO[] repoDTOS = get(ORGS_REPO_ENDPOINT, RepoDTO[].class, parameters);
+    return repoDTOS.length <= limit ? Arrays.asList(repoDTOS) : Arrays.asList(Arrays.copyOf(repoDTOS, limit));
   }
 
-  <T> Optional<T> get(String URL, Class<T> classType, Map<String, String> parameters) {
-    try {
-      return Optional.of(WebServiceFactory.getInstance(classType).getResponse(URL, parameters));
-    } catch (ResponseException e) {
-      return Optional.empty();
-    }
+  <T> T get(String URL, Class<T> classType, Map<String, String> parameters) throws ResponseException {
+    return WebServiceFactory.getInstance(classType)
+            .getResponse(URL, parameters);
   }
 
 }
